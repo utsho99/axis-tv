@@ -1,0 +1,33 @@
+                    GNU GENERAL PUBLIC LICENSE
+                       Version 3, 29 June 2007
+
+ Copyright (C) 2025 Aditya Barma Utsho (github.com/utsho99)
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+────────────────────────────────────────────────────────────────────────
+
+                    THIRD-PARTY DATA NOTICE
+
+ Channel data (channels.json) used in this project is sourced from:
+   SHAJON-404/iptv — https://github.com/SHAJON-404/iptv
+   Copyright (C) SHAJON-404
+   Licensed under GNU General Public License v3.0
+
+ This project does not host, store, or own any broadcast content
+ or media streams. All stream URLs belong to their respective owners.
+
+────────────────────────────────────────────────────────────────────────
+
+ Full license text: https://www.gnu.org/licenses/gpl-3.0.txt
