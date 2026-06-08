@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Home, Tv2, Grid2X2, Heart, Clock, Settings, Plus, Search, User, X, Eye } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 
@@ -8,25 +8,24 @@ const NAV = [
   { to:'/',          icon:Home,     label:'Home'      },
   { to:'/watch',     icon:Tv2,      label:'Watch'     },
   { to:'/browse',    icon:Grid2X2,  label:'Browse'    },
-  { to:'/favorites', icon:Heart,    label:'Favorites' },
-  { to:'/recent',    icon:Clock,    label:'Recent'    },
+  { to:'/favorites', icon:Heart,    label:'Favs'      },
+  { to:'/founder',   icon:User,     label:'Dev'       },
 ]
 
-function formatCount(n: number): string {
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M'
-  if (n >= 1_000)     return (n / 1_000).toFixed(1).replace(/\.0$/, '') + 'K'
+function formatCount(n: number) {
+  if (n >= 1_000_000) return (n/1_000_000).toFixed(1).replace(/\.0$/,'')+'M'
+  if (n >= 1_000)     return (n/1_000).toFixed(1).replace(/\.0$/,'')+'K'
   return n.toString()
 }
 
 function useVisitCounter() {
-  const [count, setCount] = useState<number | null>(null)
+  const [count, setCount] = useState<number|null>(null)
   useEffect(() => {
-    const NAMESPACE = 'axis-tv-v7', KEY = 'pageviews'
-    fetch(`https://api.counterapi.dev/v1/${NAMESPACE}/${KEY}/up`)
-      .then(r => r.json())
-      .then(data => { const v = data?.count ?? data?.value ?? null; if (typeof v === 'number') setCount(v) })
-      .catch(() => {})
-  }, [])
+    fetch('https://api.counterapi.dev/v1/axis-tv-v7/pageviews/up')
+      .then(r=>r.json())
+      .then(d=>{ const v=d?.count??d?.value??null; if(typeof v==='number') setCount(v) })
+      .catch(()=>{})
+  },[])
   return count
 }
 
@@ -35,9 +34,9 @@ export default function Shell() {
   const [search,    setSearch]    = useState('')
   const [searching, setSearching] = useState(false)
   const { current, channels } = useApp()
-  const navigate = useNavigate()
-  const location = useLocation()
-  const visits   = useVisitCounter()
+  const navigate  = useNavigate()
+  const location  = useLocation()
+  const visits    = useVisitCounter()
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 20)
@@ -50,89 +49,79 @@ export default function Shell() {
     : []
 
   return (
-    <div className="min-h-screen" style={{ background: '#0a0000', position: 'relative', zIndex: 1 }}>
+    <div style={{ minHeight:'100vh', background:'#0a0000', position:'relative' }}>
 
-      {/* ── TOP NAV ── */}
-      <nav className={`navbar ${scrolled ? 'scrolled' : ''}`} style={{ gap: '32px' }}>
-
+      {/* ── DESKTOP TOP NAV ── */}
+      <nav className={`navbar ${scrolled?'scrolled':''}`} style={{ gap:'28px' }}>
         {/* Logo */}
-        <button onClick={() => navigate('/')} className="shrink-0 flex items-center gap-2">
+        <button onClick={()=>navigate('/')} className="shrink-0 flex items-center gap-2">
           <span style={{
-            fontFamily: '"Barlow",sans-serif', fontWeight: 900, fontSize: '26px',
-            color: '#DC143C', letterSpacing: '0.06em',
-            textShadow: '0 0 20px rgba(220,20,60,0.6)',
-          }}>AXIS</span>
+            fontFamily:'"Barlow",sans-serif', fontWeight:900, fontSize:'26px',
+            color:'#DC143C', letterSpacing:'0.06em',
+            textShadow:'0 0 20px rgba(220,20,60,0.6)',
+          }}>AXIS <span style={{fontSize:'13px',color:'rgba(255,255,255,0.35)',fontWeight:500,letterSpacing:'0.2em'}}>TV</span></span>
         </button>
 
-        {/* Nav links */}
+        {/* Desktop nav links */}
         <div className="hidden md:flex items-center gap-6">
-          {NAV.map(({ to, label }) => (
-            <NavLink key={to} to={to} end={to === '/'}>
-              {({ isActive }) => (
+          {[
+            {to:'/',label:'Home'},{to:'/watch',label:'Watch'},
+            {to:'/browse',label:'Browse'},{to:'/favorites',label:'Favorites'},
+            {to:'/recent',label:'Recent'},
+          ].map(({to,label})=>(
+            <NavLink key={to} to={to} end={to==='/'}>
+              {({isActive})=>(
                 <span style={{
-                  fontSize: '14px', fontWeight: isActive ? 700 : 400,
-                  color: isActive ? '#fff' : 'rgba(255,255,255,0.55)',
-                  transition: 'color 0.15s', cursor: 'pointer',
-                  fontFamily: '"Inter",sans-serif',
-                  textShadow: isActive ? '0 0 16px rgba(220,20,60,0.5)' : 'none',
-                  borderBottom: isActive ? '1px solid rgba(220,20,60,0.6)' : '1px solid transparent',
-                  paddingBottom: '2px',
-                }}>
-                  {label}
-                </span>
+                  fontSize:'14px', fontWeight:isActive?700:400,
+                  color:isActive?'#fff':'rgba(255,255,255,0.5)',
+                  transition:'color 0.15s', cursor:'pointer',
+                  borderBottom:isActive?'1px solid rgba(220,20,60,0.6)':'1px solid transparent',
+                  paddingBottom:'2px',
+                }}>{label}</span>
               )}
             </NavLink>
           ))}
         </div>
 
-        {/* Right side */}
-        <div className="ml-auto flex items-center gap-3">
-
-          {/* Visit counter */}
-          {visits !== null && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8, y: -4 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: [0.16,1,0.3,1] }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '6px',
-                padding: '5px 12px', borderRadius: '100px',
-                background: 'rgba(220,20,60,0.08)',
-                border: '1px solid rgba(220,20,60,0.2)',
-              }}
-            >
-              <Eye size={13} style={{ color: 'rgba(220,20,60,0.7)', flexShrink: 0 }} />
-              <span style={{ fontFamily: '"Barlow",sans-serif', fontWeight: 700, fontSize: '13px', color: 'rgba(255,255,255,0.65)' }}>
+        {/* Right */}
+        <div className="ml-auto flex items-center gap-2">
+          {visits!==null && (
+            <div style={{
+              display:'flex',alignItems:'center',gap:'5px',
+              padding:'4px 10px',borderRadius:'100px',
+              background:'rgba(220,20,60,0.08)',border:'1px solid rgba(220,20,60,0.2)',
+            }}>
+              <Eye size={12} style={{color:'rgba(220,20,60,0.7)'}}/>
+              <span style={{fontFamily:'"Barlow",sans-serif',fontWeight:700,fontSize:'12px',color:'rgba(255,255,255,0.6)'}}>
                 {formatCount(visits)}
               </span>
-            </motion.div>
+            </div>
           )}
 
           {/* Search */}
           <div className="relative">
             {searching ? (
-              <motion.div initial={{ width: 0, opacity: 0 }} animate={{ width: 220, opacity: 1 }} className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'rgba(255,255,255,0.4)' }} />
-                <input autoFocus value={search} onChange={e => setSearch(e.target.value)}
-                  placeholder="Search channels…" className="ax-input pl-9 py-2 text-sm"
-                  style={{ width: '220px' }} />
-                <button onClick={() => { setSearching(false); setSearch('') }} className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <X size={13} style={{ color: 'rgba(255,255,255,0.4)' }} />
+              <motion.div initial={{width:0,opacity:0}} animate={{width:200,opacity:1}} className="relative">
+                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{color:'rgba(255,255,255,0.35)'}}/>
+                <input autoFocus value={search} onChange={e=>setSearch(e.target.value)}
+                  placeholder="Search…" className="ax-input pl-8 py-1.5 text-sm" style={{width:'200px'}}/>
+                <button onClick={()=>{setSearching(false);setSearch('')}} className="absolute right-2.5 top-1/2 -translate-y-1/2">
+                  <X size={12} style={{color:'rgba(255,255,255,0.35)'}}/>
                 </button>
-                {results.length > 0 && (
+                {results.length>0 && (
                   <div className="absolute top-full mt-2 left-0 right-0 rounded-xl overflow-hidden"
-                    style={{ background: 'rgba(15,0,5,0.9)', border: '1px solid rgba(220,20,60,0.2)', backdropFilter: 'blur(24px)', zIndex: 200 }}>
-                    {results.map(ch => (
-                      <button key={ch.id} onClick={() => { navigate('/watch/' + ch.id); setSearch(''); setSearching(false) }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors text-left"
-                        style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
-                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(220,20,60,0.1)')}
-                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                    style={{background:'rgba(12,0,4,0.95)',border:'1px solid rgba(220,20,60,0.2)',backdropFilter:'blur(24px)',zIndex:200}}>
+                    {results.map(ch=>(
+                      <button key={ch.id} onClick={()=>{navigate('/watch/'+ch.id);setSearch('');setSearching(false)}}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-left"
+                        style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}
+                        onMouseEnter={e=>(e.currentTarget.style.background='rgba(220,20,60,0.1)')}
+                        onMouseLeave={e=>(e.currentTarget.style.background='transparent')}>
                         <img src={ch.logo} alt="" className="w-8 h-5 object-contain rounded shrink-0"
-                          onError={e => (e.currentTarget.style.display = 'none')} />
+                          onError={e=>(e.currentTarget.style.display='none')}/>
                         <div>
-                          <p style={{ fontSize: '13px', fontWeight: 500, color: '#e5e5e5' }}>{ch.name}</p>
-                          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>{ch.group}</p>
+                          <p style={{fontSize:'13px',fontWeight:500,color:'#e5e5e5'}}>{ch.name}</p>
+                          <p style={{fontSize:'11px',color:'rgba(255,255,255,0.35)'}}>{ch.group}</p>
                         </div>
                       </button>
                     ))}
@@ -140,42 +129,94 @@ export default function Shell() {
                 )}
               </motion.div>
             ) : (
-              <button onClick={() => setSearching(true)} className="icon-btn w-9 h-9">
-                <Search size={15} />
-              </button>
+              <button onClick={()=>setSearching(true)} className="icon-btn"><Search size={15}/></button>
             )}
           </div>
 
           {current && (
-            <motion.button initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
-              onClick={() => navigate('/watch')}
+            <button onClick={()=>navigate('/watch')}
               className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full"
-              style={{ background: 'rgba(220,20,60,0.12)', border: '1px solid rgba(220,20,60,0.3)', fontSize: '13px', color: 'rgba(255,255,255,0.85)' }}>
-              <span className="live-dot" style={{ flexShrink: 0 }} />
-              <span className="max-w-28 truncate">{current.name}</span>
-              <Tv2 size={12} style={{ color: '#DC143C', flexShrink: 0 }} />
-            </motion.button>
+              style={{background:'rgba(220,20,60,0.12)',border:'1px solid rgba(220,20,60,0.3)',fontSize:'12px',color:'rgba(255,255,255,0.8)'}}>
+              <span className="live-dot" style={{flexShrink:0}}/>
+              <span className="max-w-24 truncate">{current.name}</span>
+            </button>
           )}
 
-          <button onClick={() => navigate('/add')} className="btn-red py-2 px-4" style={{ fontSize: '13px' }}>
-            <Plus size={14} />Add
+          <button onClick={()=>navigate('/add')} className="btn-red" style={{fontSize:'13px',padding:'7px 14px'}}>
+            <Plus size={13}/>Add
           </button>
-
-          <NavLink to="/settings">
-            <button className="icon-btn w-9 h-9"><Settings size={15} /></button>
+          <NavLink to="/settings" className="hidden md:block">
+            <button className="icon-btn"><Settings size={15}/></button>
           </NavLink>
-          <NavLink to="/founder">
-            <button className="icon-btn w-9 h-9"><User size={15} /></button>
+          <NavLink to="/founder" className="hidden md:block">
+            <button className="icon-btn"><User size={15}/></button>
           </NavLink>
         </div>
       </nav>
 
-      {/* ── PAGE ── */}
+      {/* ── PAGE CONTENT ── */}
       <motion.div key={location.pathname}
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-        transition={{ duration: 0.2 }}>
-        <Outlet />
+        initial={{opacity:0}} animate={{opacity:1}} transition={{duration:0.2}}
+        style={{paddingBottom:'80px'}} /* space for mobile bottom nav */
+      >
+        <Outlet/>
       </motion.div>
+
+      {/* ── MOBILE BOTTOM NAV ── */}
+      <nav className="md:hidden" style={{
+        position:'fixed', bottom:0, left:0, right:0, zIndex:200,
+        background:'rgba(8,0,2,0.92)',
+        borderTop:'1px solid rgba(220,20,60,0.18)',
+        backdropFilter:'blur(24px)',
+        WebkitBackdropFilter:'blur(24px)',
+        display:'flex', alignItems:'stretch',
+        paddingBottom:'env(safe-area-inset-bottom)',
+      }}>
+        {NAV.map(({to, icon:Icon, label})=>(
+          <NavLink key={to} to={to} end={to==='/'} style={{flex:1}}>
+            {({isActive})=>(
+              <div style={{
+                display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
+                gap:'4px', padding:'10px 4px',
+                color: isActive ? '#DC143C' : 'rgba(255,255,255,0.38)',
+                transition:'color 0.15s',
+                position:'relative',
+              }}>
+                {isActive && (
+                  <div style={{
+                    position:'absolute', top:0, left:'25%', right:'25%',
+                    height:'2px', background:'#DC143C', borderRadius:'0 0 2px 2px',
+                    boxShadow:'0 0 8px rgba(220,20,60,0.8)',
+                  }}/>
+                )}
+                <Icon size={20} strokeWidth={isActive?2.5:1.8}/>
+                <span style={{fontSize:'10px', fontWeight:isActive?700:400, letterSpacing:'0.02em'}}>{label}</span>
+              </div>
+            )}
+          </NavLink>
+        ))}
+        {/* Settings in mobile bottom nav too */}
+        <NavLink to="/settings" style={{flex:1}}>
+          {({isActive})=>(
+            <div style={{
+              display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
+              gap:'4px', padding:'10px 4px',
+              color: isActive ? '#DC143C' : 'rgba(255,255,255,0.38)',
+              transition:'color 0.15s', position:'relative',
+            }}>
+              {isActive && (
+                <div style={{
+                  position:'absolute', top:0, left:'25%', right:'25%',
+                  height:'2px', background:'#DC143C', borderRadius:'0 0 2px 2px',
+                  boxShadow:'0 0 8px rgba(220,20,60,0.8)',
+                }}/>
+              )}
+              <Settings size={20} strokeWidth={isActive?2.5:1.8}/>
+              <span style={{fontSize:'10px', fontWeight:isActive?700:400}}>Settings</span>
+            </div>
+          )}
+        </NavLink>
+      </nav>
     </div>
   )
 }
